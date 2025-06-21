@@ -1,4 +1,6 @@
-## Project Directory Structure
+# CLIP-QLoRA for Text-Video Retrieval (MSR-VTT)
+
+## 📁 Project Directory Structure
 
 ```
 /YourProjectRoot/
@@ -25,32 +27,77 @@
 └── utils.py               # Chứa các hàm và class dùng chung
 ```
 
-```
-accelerate config
+---
 
-In which compute environment are you running?: This machine (nhấn Enter)
-Which type of machine are you using?: No distributed training (chọn 0)
-Do you want to run your training on CPU?: no
-Do you want to use DeepSpeed?: no
-Do you want to use FullyShardedDataParallel?: no
-Do you want to use Megatron-LM?: no
-How many GPUs should be used for distributed training?: 1
-Do you wish to use bfloat16?: yes (Đây là câu hỏi quan trọng nhất cho RTX 4090)
+## ⚙️ `accelerate config` Recommendation
+
 ```
-## cài môi trường ảo
+In which compute environment are you running?
+> This machine
+
+Which type of machine are you using?
+> No distributed training
+
+Do you want to run your training on CPU only?
+> NO
+
+Do you wish to optimize your script with torch dynamo?
+> NO
+
+Do you want to use DeepSpeed?
+> NO
+
+What GPU(s) (by id) should be used for training on this machine?
+> (Just press Enter for 'all')
+
+Would you like to enable numa efficiency?
+> YES
+
+Do you wish to use FP16 or BF16 (mixed precision)?
+> bf16
 ```
+
+---
+
+## 🚀 Environment Setup
+
+### ✅ Step 1: Create Virtual Environment
+
+```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
-## Bước a: Cài đặt PyTorch và các thư viện liên quan
-```
+
+---
+
+### ✅ Step 2a: Install PyTorch (CUDA 12.1)
+
+```bash
 pip install torch==2.3.1+cu121 torchvision==0.18.1+cu121 torchaudio==2.3.1+cu121 -f https://download.pytorch.org/whl/torch_stable.html
 ```
-## Bước b: Cài đặt bitsandbytes từ nguồn đã biên dịch sẵn 
-```
+
+---
+
+### ✅ Step 2b: Install `bitsandbytes` (precompiled)
+
+```bash
 pip install bitsandbytes==0.43.1
 ```
-## Bước c: Cài đặt các thư viện còn lại, bao gồm cả safetensors
-```
+
+---
+
+### ✅ Step 2c: Install Remaining Dependencies
+
+```bash
 pip install transformers==4.41.2 peft==0.11.1 accelerate==0.31.0 datasets==2.20.0 decord tensorboard safetensors
+```
+
+---
+
+## 🏁 Training
+
+Launch training with:
+
+```bash
+accelerate launch 1_train.py
 ```
