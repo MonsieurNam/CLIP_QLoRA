@@ -37,7 +37,11 @@ Do you want to use Megatron-LM?: no
 How many GPUs should be used for distributed training?: 1
 Do you wish to use bfloat16?: yes (Đây là câu hỏi quan trọng nhất cho RTX 4090)
 ```
-
+## cài môi trường ảo
+```
+python3 -m venv venv
+source venv/bin/activate
+```
 ## Bước a: Cài đặt PyTorch và các thư viện liên quan
 ```
 pip install torch==2.3.1+cu121 torchvision==0.18.1+cu121 torchaudio==2.3.1+cu121 -f https://download.pytorch.org/whl/torch_stable.html
