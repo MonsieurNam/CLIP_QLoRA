@@ -26,37 +26,6 @@
 ├── 2_evaluate.py          # Script để đánh giá mô hình
 └── utils.py               # Chứa các hàm và class dùng chung
 ```
-
----
-
-## ⚙️ `accelerate config` Recommendation
-
-```
-In which compute environment are you running?
-> This machine
-
-Which type of machine are you using?
-> No distributed training
-
-Do you want to run your training on CPU only?
-> NO
-
-Do you wish to optimize your script with torch dynamo?
-> NO
-
-Do you want to use DeepSpeed?
-> NO
-
-What GPU(s) (by id) should be used for training on this machine?
-> (Just press Enter for 'all')
-
-Would you like to enable numa efficiency?
-> YES
-
-Do you wish to use FP16 or BF16 (mixed precision)?
-> bf16
-```
-
 ---
 
 ## 🚀 Environment Setup
