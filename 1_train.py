@@ -9,6 +9,7 @@ from accelerate import Accelerator, notebook_launcher
 from tqdm.auto import tqdm
 import glob
 import time
+import json
 
 # Import các class từ file utils.py
 # Đảm bảo file utils.py nằm cùng thư mục hoặc trong python path
@@ -22,7 +23,7 @@ def get_config():
     """Hàm chứa tất cả các cấu hình cho dự án."""
     config = {
         # --- Đường dẫn ---
-        "project_root_path": "/content/drive/MyDrive/Intern_FPT/AI/DATASET/", # THAY ĐỔI ĐƯỜNG DẪN NÀY
+        "project_root_path": "/root", # THAY ĐỔI ĐƯỜNG DẪN NÀY
         
         # --- Cấu hình Mô hình ---
         "model_name": "openai/clip-vit-base-patch32",
@@ -44,7 +45,7 @@ def get_config():
         "lora_dropout": 0.05,
         
         # --- Cấu hình Lưu trữ ---
-        "checkpointing_steps": 1000, # Lưu sau mỗi 1000 bước tối ưu
+        "checkpointing_steps": 5000, # Lưu sau mỗi 1000 bước tối ưu
     }
     
     # Tính toán các đường dẫn dựa trên thư mục gốc
