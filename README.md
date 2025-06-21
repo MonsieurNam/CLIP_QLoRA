@@ -42,8 +42,7 @@ Do you wish to use bfloat16?: yes (Đây là câu hỏi quan trọng nhất cho 
 ```
 pip install torch==2.3.1+cu121 torchvision==0.18.1+cu121 torchaudio==2.3.1+cu121 -f https://download.pytorch.org/whl/torch_stable.html
 ```
-## Bước b: Cài đặt bitsandbytes từ nguồn đã biên dịch sẵn (cách đáng tin cậy nhất)
-## Lệnh này sẽ tải một file wheel đã được biên dịch cho nhiều môi trường
+## Bước b: Cài đặt bitsandbytes từ nguồn đã biên dịch sẵn 
 ```
 pip install bitsandbytes==0.43.1
 ```
