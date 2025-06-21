@@ -38,16 +38,16 @@ How many GPUs should be used for distributed training?: 1
 Do you wish to use bfloat16?: yes (Đây là câu hỏi quan trọng nhất cho RTX 4090)
 ```
 
-# Bước a: Cài đặt PyTorch và các thư viện liên quan
+## Bước a: Cài đặt PyTorch và các thư viện liên quan
 ```
 pip install torch==2.3.1+cu121 torchvision==0.18.1+cu121 torchaudio==2.3.1+cu121 -f https://download.pytorch.org/whl/torch_stable.html
 ```
-# Bước b: Cài đặt bitsandbytes từ nguồn đã biên dịch sẵn (cách đáng tin cậy nhất)
-# Lệnh này sẽ tải một file wheel đã được biên dịch cho nhiều môi trường
+## Bước b: Cài đặt bitsandbytes từ nguồn đã biên dịch sẵn (cách đáng tin cậy nhất)
+## Lệnh này sẽ tải một file wheel đã được biên dịch cho nhiều môi trường
 ```
 pip install bitsandbytes==0.43.1
 ```
-# Bước c: Cài đặt các thư viện còn lại, bao gồm cả safetensors
+## Bước c: Cài đặt các thư viện còn lại, bao gồm cả safetensors
 ```
 pip install transformers==4.41.2 peft==0.11.1 accelerate==0.31.0 datasets==2.20.0 decord tensorboard safetensors
 ```
