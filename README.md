@@ -27,7 +27,6 @@
 
 ```
 accelerate config
-```
 
 In which compute environment are you running?: This machine (nhấn Enter)
 Which type of machine are you using?: No distributed training (chọn 0)
@@ -37,3 +36,4 @@ Do you want to use FullyShardedDataParallel?: no
 Do you want to use Megatron-LM?: no
 How many GPUs should be used for distributed training?: 1
 Do you wish to use bfloat16?: yes (Đây là câu hỏi quan trọng nhất cho RTX 4090)
+```
