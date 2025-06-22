@@ -52,73 +52,76 @@ class PositionalEncoding(nn.Module):
 # ==============================================================================
 # CLASS MÔ HÌNH DUAL-ENCODER (ĐÃ NÂNG CẤP)
 # ==============================================================================
-class DualEncoderModel(nn.Module):
-    """
-    Kiến trúc Dual-Encoder đã được nâng cấp.
-    """
-    def __init__(self, model_name: str, projection_dim: int = 256, num_temporal_layers: int = 2, quantization_config: BitsAndBytesConfig = None, **kwargs):
-        super().__init__()
-        print("Khởi tạo DualEncoderModel với Temporal Transformer...")
 
-        # --- Tải các encoder gốc với cấu hình lượng tử hóa (nếu có) ---
+class DualEncoderModel(nn.Module):
+    def __init__(self, model_name: str, projection_dim: int = 256, num_temporal_layers: int = 2, quantization_config: BitsAndBytesConfig = None):
+        super().__init__()
+        
+        # --- PHẦN 1: Tải các backbone đã được lượng tử hóa (sẽ bị đóng băng) ---
         self.vision_encoder = CLIPVisionModel.from_pretrained(
-            model_name, 
-            quantization_config=quantization_config
+            model_name, quantization_config=quantization_config
         )
         self.text_encoder = CLIPTextModel.from_pretrained(
-            model_name, 
-            quantization_config=quantization_config
+            model_name, quantization_config=quantization_config
         )
+
+        # --- PHẦN 2: Định nghĩa các module MỚI và có thể HỌC (phải là float32) ---
         vision_hidden_size = self.vision_encoder.config.hidden_size
         text_hidden_size = self.text_encoder.config.hidden_size
-
-        # --- CẢI TIẾN 1: Temporal Transformer ---
-        transformer_layer = nn.TransformerEncoderLayer(
-            d_model=vision_hidden_size, nhead=8,
-            dim_feedforward=vision_hidden_size * 4,
-            dropout=0.1, activation='gelu', batch_first=True
-        )
+        
+        # Các module này sẽ không bị lượng tử hóa và sẽ được optimizer cập nhật
         self.temporal_encoder = nn.TransformerEncoder(
-            transformer_layer,
+            nn.TransformerEncoderLayer(
+                d_model=vision_hidden_size, nhead=8, dim_feedforward=vision_hidden_size * 4,
+                dropout=0.1, activation='gelu', batch_first=True
+            ),
             num_layers=num_temporal_layers
         )
-        
-        # --- CẢI TIẾN 2: Positional Encoding và CLS Token ---
         self.video_pos_encoder = PositionalEncoding(d_model=vision_hidden_size)
         self.video_cls_token = nn.Parameter(torch.randn(1, 1, vision_hidden_size))
-
-        # --- Các lớp Projection cuối cùng ---
         self.video_projection = nn.Linear(vision_hidden_size, projection_dim, bias=False)
         self.text_projection = nn.Linear(text_hidden_size, projection_dim, bias=False)
 
+    def get_trainable_parameters(self):
+        """Hàm trợ giúp để lấy các tham số của các module mới."""
+        new_modules_params = [
+            *self.temporal_encoder.parameters(),
+            self.video_cls_token,
+            *self.video_projection.parameters(),
+            *self.text_projection.parameters()
+        ]
+        return new_modules_params
+
     def forward(self, pixel_values=None, input_ids=None, attention_mask=None, **kwargs):
-        video_embeds, text_embeds = None, None
+        # ... forward pass ...
+        # Đảm bảo các phép tính với module mới được thực hiện ở float32
         
-        if pixel_values is not None:
-            batch_size, num_frames, C, H, W = pixel_values.shape
-            pixel_values = pixel_values.view(-1, C, H, W)
-            
-            vision_outputs = self.vision_encoder(pixel_values=pixel_values)
-            frame_embeds = vision_outputs.last_hidden_state[:, 0, :]
-            frame_embeds = frame_embeds.view(batch_size, num_frames, -1)
-            
-            cls_tokens = self.video_cls_token.expand(batch_size, -1, -1)
-            temporal_input = torch.cat((cls_tokens, frame_embeds), dim=1)
-            
-            temporal_input_with_pos = self.video_pos_encoder(temporal_input)
-            
-            temporal_output = self.temporal_encoder(temporal_input_with_pos)
-            video_embeds = temporal_output[:, 0, :]
-            
-            video_embeds = self.video_projection(video_embeds)
-            video_embeds = video_embeds / video_embeds.norm(dim=-1, keepdim=True)
-            
-        if input_ids is not None:
-            text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
-            text_embeds = text_outputs.last_hidden_state[:, 0, :]
-            text_embeds = self.text_projection(text_embeds)
-            text_embeds = text_embeds / text_embeds.norm(dim=-1, keepdim=True)
-            
+        # Vision
+        vision_outputs = self.vision_encoder(pixel_values=pixel_values.view(-1, *pixel_values.shape[2:]))
+        frame_embeds = vision_outputs.last_hidden_state[:, 0, :]
+        frame_embeds = frame_embeds.view(pixel_values.shape[0], pixel_values.shape[1], -1)
+        
+        # Chuyển sang float32 để xử lý với các module có thể học
+        frame_embeds_f32 = frame_embeds.to(torch.float32)
+        
+        cls_tokens = self.video_cls_token.expand(frame_embeds.shape[0], -1, -1)
+        temporal_input = torch.cat((cls_tokens, frame_embeds_f32), dim=1)
+        temporal_input_with_pos = self.video_pos_encoder(temporal_input)
+        temporal_output = self.temporal_encoder(temporal_input_with_pos)
+        video_embeds = temporal_output[:, 0, :]
+        video_embeds = self.video_projection(video_embeds)
+        video_embeds = video_embeds / video_embeds.norm(dim=-1, keepdim=True)
+        
+        # Text
+        text_outputs = self.text_encoder(input_ids=input_ids, attention_mask=attention_mask)
+        text_embeds = text_outputs.last_hidden_state[:, 0, :]
+        
+        # Chuyển sang float32
+        text_embeds_f32 = text_embeds.to(torch.float32)
+
+        text_embeds = self.text_projection(text_embeds_f32)
+        text_embeds = text_embeds / text_embeds.norm(dim=-1, keepdim=True)
+
         return video_embeds, text_embeds
 
 # ==============================================================================
